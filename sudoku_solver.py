@@ -126,9 +126,13 @@ class Grid():
                         for j in maybe_col:
                             if box_values[i % 3][j % 3] == 0:
                                 maybe_positions.append([i, j])
+
+
                     if len(maybe_positions) == 1:
                         i, j = maybe_positions[0]
                         self.fill_cell(value, i ,j)
+                    elif len(maybe_positions) == 0:
+                        return 'conflict'
         return self.array
 
     # given a row, col, or box, if it contains 4 or less missing cells,
@@ -144,7 +148,9 @@ class Grid():
             missing_cells = [(row_no, col) for col in missing_cells]
             for cell in missing_cells:
                 possible_values = self.get_possible_values_in_cell(missing_values, cell)
-                if len(possible_values) == 1:
+                if len(possible_values) == 0:
+                    return 'conflict'
+                elif len(possible_values) == 1:
                     value = possible_values[0]
                     i, j = cell
                     self.fill_cell(value, i, j)
@@ -158,7 +164,9 @@ class Grid():
             missing_cells = [(row, col_no) for row in missing_cells]
             for cell in missing_cells:
                 possible_values = self.get_possible_values_in_cell(missing_values, cell)
-                if len(possible_values) == 1:
+                if len(possible_values) == 0:
+                    return 'conflict'
+                elif len(possible_values) == 1:
                     value = possible_values[0]
                     i, j = cell
                     self.fill_cell(value, i, j)
@@ -178,6 +186,9 @@ class Grid():
                     i, j = cell
                     self.fill_cell(value, i, j)
 
+    def check_solve(self):
+        return 0 not in self.array
+
     #basic solving step by repeating step 1 and 2
     # until no cell can be filled anymore
     def solve(self):
@@ -185,13 +196,17 @@ class Grid():
         if self.solved:
             return self.array
         else:
-            nc = False
-            while (not self.no_change()) or (not nc):
-                self.step_one()
-                nc = self.no_change()
+            nc1 = False
+            nc2 = False
+            while not (nc1 and nc2):
+                state = self.step_one()
+                if state == 'conflict':
+                    return None
+                nc1 = self.no_change()
                 state = self.step_two()
                 if state == 'conflict':
                     return None
+                nc2 = self.no_change()
         return self.array
 
     # remove solution from parent if it reaches dead end (not necessary really)
@@ -271,9 +286,10 @@ class Grid():
     # solve gird with step 1 & 2 until it stalemate
     # add possible move as a possible solution and recursively solve all
     def recur_solve(self, max_depth=5, choices=2):
-        if not max_depth:
+        if max_depth == 0:
             return None
         solve_status = self.solve()
+
         if solve_status is None:
             return self.remove_solution()
         if 0 not in self.array:
@@ -289,15 +305,28 @@ class Grid():
 
 
 if __name__ == '__main__':
-    g = Grid([
-        [0, 6, 9, 0, 0, 2, 7, 0, 0],
-        [0, 7, 0, 0, 5, 0, 0, 0, 9],
-        [0, 0, 0, 4, 0, 0, 8, 0, 2],
-        [0, 0, 3, 6, 0, 0, 0, 0, 0],
-        [7, 0, 0, 0, 0, 0, 0, 0, 6],
-        [0, 0, 0, 0, 0, 5, 4, 0, 0],
-        [5, 0, 4, 0, 0, 8, 0, 0, 0],
-        [2, 0, 0, 0, 3, 0, 0, 1, 0],
-        [0, 0, 6, 9, 0, 0, 5, 7, 0],
-    ])
-    print(g.recur_solve())
+    # g = Grid([
+    #     [0, 6, 9, 0, 0, 2, 7, 0, 0],
+    #     [0, 7, 0, 0, 5, 0, 0, 0, 9],
+    #     [0, 0, 0, 4, 0, 0, 8, 0, 2],
+    #     [0, 0, 3, 6, 0, 0, 0, 0, 0],
+    #     [7, 0, 0, 0, 0, 0, 0, 0, 6],
+    #     [0, 0, 0, 0, 0, 5, 4, 0, 0],
+    #     [5, 0, 4, 0, 0, 8, 0, 0, 0],
+    #     [2, 0, 0, 0, 3, 0, 0, 1, 0],
+    #     [0, 0, 6, 9, 0, 0, 5, 7, 0],
+    # ])
+    g = Grid(
+        [
+            [0, 6, 0, 0, 0, 8, 3, 0, 7],
+            [7, 1, 0, 0, 2, 0, 5, 0, 0],
+            [0, 0, 0, 0, 1, 0, 2, 9, 0],
+            [0, 0, 7, 0, 8, 4, 9, 0, 2],
+            [3, 8, 0, 9, 0, 7, 4, 0, 1],
+            [4, 0, 0, 2, 6, 0, 8, 0, 0],
+            [0, 9, 6, 0, 7, 0, 0, 0, 0],
+            [0, 0, 3, 0, 9, 0, 0, 0, 5],
+            [1, 0, 5, 4, 0, 0, 6, 8, 0]
+        ]
+    )
+    print(g.solve())
