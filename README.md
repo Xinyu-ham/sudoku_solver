@@ -6,4 +6,5 @@ Download the right version from https://chromedriver.chromium.org/downloads</br>
 Unzip and put file in <i>/usr/local/bin</i> or whatever the Windows equivalent of that is</br>
 For Mac double click on it and allow through privacy setting first
 # Run it
+Difficulty is adjustable, depth will limit max tree depth and choices limits the number of branches at each node
 `python3 gui.py --difficulty 4 --depth 5 --choices 2 `
